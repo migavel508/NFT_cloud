@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload & NFT Minting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #4500b5;
+        }
+        input[type="file"] {
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 5px;
+            width: 100%;
+        }
+        p {
+            font-size: 14px;
+            color: #555;
+        }
+        .link {
+            display: block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #6200ea;
+            font-weight: bold;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload File & Mint NFT</h1>
+
+        <h2>1️⃣ Upload File</h2>
+        <input type="file" id="fileInput">
+        <button onclick="uploadFile()">Upload</button>
+        <p id="uploadResult"></p>
+
+        <h2>2️⃣ Mint NFT</h2>
+        <button onclick="mintNFT()">Mint NFT</button>
+        <p id="mintResult"></p>
+
+        <h2>3️⃣ View Minting History</h2>
+        <a href="/history" class="link">📜 View Minted NFTs</a>
+    </div>
+
+    <script>
+        let ipfsHash = "";
+
+        async function uploadFile() {
+            const fileInput = document.getElementById("fileInput").files[0];
+            if (!fileInput) return alert("Please select a file");
+
+            let formData = new FormData();
+            formData.append("file", fileInput);
+
+            const response = await fetch("/upload", { method: "POST", body: formData });
+            const result = await response.json();
+
+            if (result.success) {
+                ipfsHash = result.ipfs_hash;
+                document.getElementById("uploadResult").innerText = `✅ File uploaded! IPFS Hash: ${ipfsHash}`;
+            } else {
+                document.getElementById("uploadResult").innerText = `❌ Upload failed: ${result.error}`;
+            }
+        }
+
+        async function mintNFT() {
+            if (!ipfsHash) return alert("Upload a file first!");
+
+            const response = await fetch("/mint", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ipfs_hash: ipfsHash })
+            });
+
+            const result = await response.json();
+            document.getElementById("mintResult").innerText = result.transaction_hash
+                ? `✅ NFT Minted! TX Hash: ${result.transaction_hash}`
+                : `❌ Minting failed: ${result.error}`;
+        }
+    </script>
+</body>
+</html>

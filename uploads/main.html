@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFT Minting Platform</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Upload & Mint Your NFT</h1>
+        <input type="file" id="fileInput">
+        <button onclick="uploadFile()">Upload & Mint</button>
+        <p id="response"></p>
+        <button onclick="viewHistory()" class="view-history">View Mint History</button>
+    </div>
+
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById("fileInput");
+            if (!fileInput.files.length) {
+                document.getElementById("response").innerText = "Please select a file first.";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                const uploadRes = await fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                });
+                const uploadData = await uploadRes.json();
+                if (uploadData.error) throw new Error(uploadData.error);
+
+                const ipfsHash = uploadData.ipfs_hash;
+
+                const mintRes = await fetch("/mint", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ipfs_hash: ipfsHash })
+                });
+                const mintData = await mintRes.json();
+
+                if (mintData.error) throw new Error(mintData.error);
+                document.getElementById("response").innerText = "NFT Minted! Tx Hash: " + mintData.transaction_hash;
+            } catch (error) {
+                document.getElementById("response").innerText = "Error: " + error.message;
+            }
+        }
+
+        function viewHistory() {
+            window.location.href = "/history";
+        }
+    </script>
+</body>
+</html>
