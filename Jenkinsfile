@@ -12,22 +12,42 @@ pipeline {
             steps {
                 echo 'Building project...'
                 echo 'Installing dependencies...'
-                bat  'pip install -r requirements.txt'  // Install dependencies
-                bat  'python server.py'  // Start the server
+                
+                script {
+                    if (isUnix()) {
+                        sh 'python3 -m venv venv && source venv/bin/activate' // Create virtual env (Linux/macOS)
+                        sh 'pip install -r requirements.txt'  // Install dependencies
+                    } else {
+                        bat 'python -m venv venv && venv\\Scripts\\activate' // Windows virtual env
+                        bat 'pip install -r requirements.txt'
+                    }
+                }
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                // Add test commands here (e.g., pytest, jest, etc.)
+                script {
+                    if (isUnix()) {
+                        sh 'pytest'
+                    } else {
+                        bat 'pytest'
+                    }
+                }
             }
         }
 
         stage('Deploy') {
             steps {
                 echo 'Deploying...'
-                // Add deployment commands here
+                script {
+                    if (isUnix()) {
+                        sh 'nohup python server.py &'
+                    } else {
+                        bat 'start /B python server.py'
+                    }
+                }
             }
         }
     }
