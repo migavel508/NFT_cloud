@@ -56,7 +56,8 @@ pipeline {
 
         stage('Deploy') {
             when {
-                not { failed() }
+                success()
+
             }
             steps {
                 echo 'Deploying...'
