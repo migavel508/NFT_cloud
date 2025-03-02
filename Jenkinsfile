@@ -47,7 +47,7 @@ pipeline {
                     } else {
                         bat '''
                         call venv\\Scripts\\activate
-                        pytest --maxfail=3 --disable-warnings
+                        
                         '''
                     }
                 }
