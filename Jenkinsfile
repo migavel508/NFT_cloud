@@ -11,7 +11,9 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building project...'
-                // Add build commands here (e.g., npm install, mvn build, etc.)
+                echo 'Installing dependencies...'
+                sh 'pip install -r requirements.txt'  // Install dependencies
+                sh 'python server.py'  // Start the server
             }
         }
 
