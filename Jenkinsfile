@@ -12,8 +12,8 @@ pipeline {
             steps {
                 echo 'Building project...'
                 echo 'Installing dependencies...'
-                sh 'pip install -r requirements.txt'  // Install dependencies
-                sh 'python server.py'  // Start the server
+                bat  'pip install -r requirements.txt'  // Install dependencies
+                bat  'python server.py'  // Start the server
             }
         }
 
