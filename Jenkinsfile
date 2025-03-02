@@ -1,25 +1,33 @@
 pipeline {
     agent any
 
+    environment {
+        REPO_URL = 'https://github.com/migavel508/NFT_cloud.git'
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/migavel508/NFT_cloud.git'
+                git branch: 'main', url: "${REPO_URL}"
             }
         }
 
         stage('Build') {
             steps {
                 echo 'Building project...'
-                echo 'Installing dependencies...'
-                
                 script {
                     if (isUnix()) {
-                        sh 'python3 -m venv venv && source venv/bin/activate' // Create virtual env (Linux/macOS)
-                        sh 'pip install -r requirements.txt'  // Install dependencies
+                        sh '''
+                        python3 -m venv venv
+                        source venv/bin/activate
+                        pip install -r requirements.txt
+                        '''
                     } else {
-                        bat 'python -m venv venv && venv\\Scripts\\activate' // Windows virtual env
-                        bat 'pip install -r requirements.txt'
+                        bat '''
+                        python -m venv venv
+                        venv\\Scripts\\activate
+                        pip install -r requirements.txt
+                        '''
                     }
                 }
             }
@@ -30,9 +38,9 @@ pipeline {
                 echo 'Running tests...'
                 script {
                     if (isUnix()) {
-                        sh 'pytest'
+                        sh 'pytest --maxfail=3 --disable-warnings'
                     } else {
-                        bat 'pytest'
+                        bat 'pytest --maxfail=3 --disable-warnings'
                     }
                 }
             }
@@ -43,12 +51,25 @@ pipeline {
                 echo 'Deploying...'
                 script {
                     if (isUnix()) {
-                        sh 'nohup python server.py &'
+                        sh '''
+                        source venv/bin/activate
+                        nohup python server.py > server.log 2>&1 &
+                        '''
                     } else {
-                        bat 'start /B python server.py'
+                        bat '''
+                        venv\\Scripts\\activate
+                        start /B python server.py
+                        '''
                     }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            deleteDir()
         }
     }
 }
