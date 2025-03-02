@@ -20,12 +20,14 @@ pipeline {
                         sh '''
                         python3 -m venv venv
                         source venv/bin/activate
+                        pip install --upgrade pip
                         pip install -r requirements.txt
                         '''
                     } else {
                         bat '''
                         python -m venv venv
-                        venv\\Scripts\\activate
+                        call venv\\Scripts\\activate
+                        pip install --upgrade pip
                         pip install -r requirements.txt
                         '''
                     }
@@ -38,15 +40,24 @@ pipeline {
                 echo 'Running tests...'
                 script {
                     if (isUnix()) {
-                        sh 'pytest --maxfail=3 --disable-warnings'
+                        sh '''
+                        source venv/bin/activate
+                        pytest --maxfail=3 --disable-warnings
+                        '''
                     } else {
-                        bat 'pytest --maxfail=3 --disable-warnings'
+                        bat '''
+                        call venv\\Scripts\\activate
+                        pytest --maxfail=3 --disable-warnings
+                        '''
                     }
                 }
             }
         }
 
         stage('Deploy') {
+            when {
+                not { failed() }
+            }
             steps {
                 echo 'Deploying...'
                 script {
@@ -57,7 +68,7 @@ pipeline {
                         '''
                     } else {
                         bat '''
-                        venv\\Scripts\\activate
+                        call venv\\Scripts\\activate
                         start /B python server.py
                         '''
                     }
